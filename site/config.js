@@ -119,7 +119,7 @@ export const config = {
   rsvp: {
     // URL de la aplicación web de Google Apps Script (termina en /exec).
     // Vacío = el formulario se muestra pero avisa de que aún no está activo.
-    endpoint: '',
+    endpoint: 'https://script.google.com/macros/s/AKfycbw_JMEHg0iGoEAoE5DHiqRE9rkFzUxQDnzNvF26_9Qrrv9G4XBSoaIM9Pqw2UY__6xaJQ/exec',
     // Fecha límite para confirmar, 'AAAA-MM-DD' (incluida). ⚠️ POR CONFIRMAR
     // Debe coincidir con la propiedad RSVP_DEADLINE del script.
     deadline: null,
