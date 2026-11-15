@@ -375,10 +375,7 @@ export const config = {
     },
     {
       q: { es: '¿Hará calor en septiembre?', en: 'Will it be hot in September?' },
-      a: {
-        es: 'Probablemente sí de día, y por la noche refresca, así que viene bien llevar algo de abrigo ligero. Esto es lo que marcó el termómetro esa semana en los últimos diez años y lo que cabe esperar para el día de la boda.',
-        en: 'Probably during the day, and it cools down at night, so bring a light layer. Here is what the thermometer read that week over the last ten years, and what to expect on the wedding day.',
-      },
+      a: { es: '', en: '' },
       // Gráfico de temperaturas (datos en data/clima-villanueva.json; se recalcula con scripts/clima.py).
       chart: 'clima',
     },

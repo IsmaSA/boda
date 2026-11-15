@@ -469,7 +469,7 @@ export function faqItems(cfg, lang) {
 function faq(cfg, lang) {
   const u = ui[lang];
   const items = faqItems(cfg, lang);
-  const curios = (cfg.curiosities || []).filter((c) => has(t(c.q, lang)) && has(t(c.a, lang)));
+  const curios = (cfg.curiosities || []).filter((c) => has(t(c.q, lang)) && (has(t(c.a, lang)) || c.chart));
   return `
 <section class="sec faq" id="preguntas" aria-labelledby="faq-title">
   <h2 class="h2 sec__title" id="faq-title">${esc(u.faqTitle)}</h2>
@@ -486,7 +486,7 @@ function qa(q, a, extra = '') {
   return `
     <details class="qa">
       <summary class="qa__q"><span>${esc(q)}</span><span class="qa__mark" aria-hidden="true"></span></summary>
-      <div class="qa__a"><p>${esc(a)}</p>${extra}</div>
+      <div class="qa__a">${a ? `<p>${esc(a)}</p>` : ''}${extra}</div>
     </details>`;
 }
 

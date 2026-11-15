@@ -17,7 +17,6 @@ const TXT = {
     ci: 'IC 95 % de la media esperada',
     pi: 'Intervalo de predicción 95 % para ese día',
     forecast: 'previsión',
-    caption: (mx, mn, acc) => `Puntos pequeños: cada día entre el 15 y el 21 de septiembre; puntos grandes: media de esa semana. Línea discontinua: tendencia lineal de las medias anuales (máxima ${sign(mx.trend.slopePerDecade)} °C por década, IC 95 % ${mx.trend.slopeCI95PerDecade[0]} a ${mx.trend.slopeCI95PerDecade[1]}; mínima ${sign(mn.trend.slopePerDecade)} °C, IC 95 % ${mn.trend.slopeCI95PerDecade[0]} a ${mn.trend.slopeCI95PerDecade[1]}). Con solo diez años la tendencia no es significativa, por eso las bandas de 2027 son anchas. Es una estimación estadística, no una previsión meteorológica. Datos: reanálisis ERA5 de Copernicus vía Open-Meteo (CC BY 4.0), punto de rejilla a 1,6 km del restaurante, consultado el ${acc}. El reanálisis suaviza los extremos; un termómetro de calle puede marcar algo más por la tarde.`,
     dataTitle: 'Ver los datos',
     year: 'Año',
     meanMax: 'Máxima media',
@@ -37,7 +36,6 @@ const TXT = {
     ci: '95% CI of the expected mean',
     pi: '95% prediction interval for that day',
     forecast: 'forecast',
-    caption: (mx, mn, acc) => `Small dots: each day from 15 to 21 September; large dots: that week’s mean. Dashed line: linear trend of the yearly means (high ${sign(mx.trend.slopePerDecade)} °C per decade, 95% CI ${mx.trend.slopeCI95PerDecade[0]} to ${mx.trend.slopeCI95PerDecade[1]}; low ${sign(mn.trend.slopePerDecade)} °C, 95% CI ${mn.trend.slopeCI95PerDecade[0]} to ${mn.trend.slopeCI95PerDecade[1]}). With only ten years the trend is not significant, which is why the 2027 bands are wide. This is a statistical estimate, not a weather forecast. Data: Copernicus ERA5 reanalysis via Open-Meteo (CC BY 4.0), grid point 1.6 km from the venue, accessed ${acc}. Reanalysis smooths extremes; a street thermometer may read a little higher in the afternoon.`,
     dataTitle: 'Show the data',
     year: 'Year',
     meanMax: 'Mean high',
@@ -47,7 +45,6 @@ const TXT = {
   },
 };
 
-function sign(v) { return (/^[-−]/.test(String(v)) ? '' : '+') + v; }
 
 // Spanish uses a decimal comma; applied to every number in the strings.
 function localise(lang, value) {
@@ -64,7 +61,6 @@ export function climateFigure(lang) {
   const n = d.years.length;
   const mx = localise(lang, d.max);
   const mn = localise(lang, d.min);
-  const acc = new Date(d.accessed + 'T12:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
   // geometry (viewBox units)
   const W = 480, H = 300, l = 34, r = 10, top = 12, bottom = 30;
@@ -117,7 +113,7 @@ export function climateFigure(lang) {
         ${key('clima__key--day', L.day)}${key('clima__key--mean', L.mean)}${key('clima__key--trend', L.trend)}
         ${key('clima__key--ci', L.ci)}${key('clima__key--pi', L.pi)}
       </ul>
-      <figcaption class="clima__cap">${esc(L.caption(mx, mn, acc))}</figcaption>
+      <figcaption class="clima__cap">${lang === 'en' ? 'Data' : 'Datos'}: Open-Meteo (ERA5, CC BY 4.0).</figcaption>
       <details class="clima__data">
         <summary>${esc(L.dataTitle)}</summary>
         <table>
