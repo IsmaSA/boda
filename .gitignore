@@ -1,0 +1,12 @@
+# Dependencias
+node_modules/
+
+# Web generada (la crea el flujo de GitHub Actions en cada push)
+dist/
+
+# Exportaciones de respuestas (datos personales; nunca al repositorio)
+*.csv
+*.xlsx
+
+# Sistema
+.DS_Store
