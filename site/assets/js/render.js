@@ -58,7 +58,7 @@ export function renderHeader(cfg, lang) {
 
 /* ---------------- main ---------------- */
 export function renderMain(cfg, lang) {
-  return [hero, story, gallery, details, schedule, travel, stay, rsvp, faq, closing, viewer].map((f) => f(cfg, lang)).join('\n');
+  return [hero, story, gallery, details, schedule, travel, stay, packing, rsvp, faq, closing, viewer].map((f) => f(cfg, lang)).join('\n');
 }
 
 /** A photo is either one file ('…/foto.jpg') or a base name with -640/-1280.webp versions. */
@@ -100,6 +100,7 @@ function hero(cfg, lang) {
     <div class="countdown" data-countdown role="timer" aria-label="${esc(u.countdown.label)}">
       <noscript><p>${esc(date)}</p></noscript>
     </div>
+    ${cfg.fun?.siestas ? '<p class="cd__aside" data-siestas hidden></p>' : ''}
   </div>
   <div class="hero__art">${art}</div>
 </section>`;
@@ -183,8 +184,58 @@ function details(cfg, lang) {
     </div>
     ${rows.length ? `<dl class="facts">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
     ${(d.notes || []).length ? `<ul class="notes">${d.notes.map((n) => `<li>${esc(t(n, lang))}</li>`).join('')}</ul>` : ''}
+    ${calendarBlock(cfg, lang)}
   </div>
 </section>`;
+}
+
+/* ---------------- add to calendar ---------------- */
+const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/([,;])/g, '\\$1').replace(/\n/g, '\\n');
+const ymd = (iso) => iso.replace(/-/g, '');
+const nextDay = (iso) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+};
+
+/** Google Calendar link and an .ics file (as a data: URL) for the wedding day, all day. */
+export function calendarLinks(cfg, lang) {
+  const u = ui[lang].calendar;
+  const w = cfg.wedding;
+  const start = ymd(w.date);
+  const end = ymd(nextDay(w.date));
+  const where = [cfg.venue.name, ...venueLines(cfg)].join(', ');
+  const details = u.details(cfg.siteUrl);
+  const google = 'https://calendar.google.com/calendar/render?' + new URLSearchParams({
+    action: 'TEMPLATE', text: u.event, dates: `${start}/${end}`, location: where, details,
+  });
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Isma y Sara//Boda//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:boda-${start}@isma-sara`,
+    'DTSTAMP:20261115T000000Z',
+    `DTSTART;VALUE=DATE:${start}`,
+    `DTEND;VALUE=DATE:${end}`,
+    `SUMMARY:${icsText(u.event)}`,
+    `LOCATION:${icsText(where)}`,
+    `DESCRIPTION:${icsText(details)}`,
+    `URL:${cfg.siteUrl}`,
+    'END:VEVENT', 'END:VCALENDAR', '',
+  ].join('\r\n');
+  return { google, ics: 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics) };
+}
+
+function calendarBlock(cfg, lang) {
+  const u = ui[lang].calendar;
+  const c = calendarLinks(cfg, lang);
+  return `
+    <div class="cal">
+      <p class="cal__title">${esc(u.title)}</p>
+      <p class="cal__note">${esc(u.note)}</p>
+      <p class="cal__links">
+        <a class="btn btn--small btn--ghost" href="${esc(c.google)}" target="_blank" rel="noopener" data-cal="google">${esc(u.google)}</a>
+        <a class="btn btn--small btn--ghost" href="${esc(c.ics)}" download="boda-isma-sara.ics" data-cal="ics">${esc(u.ics)}</a>
+      </p>
+    </div>`;
 }
 
 function mapBlock(cfg, lang) {
@@ -393,6 +444,7 @@ function rsvp(cfg, lang) {
         ${radios('attending', [['yes', f.yes], ['no', f.no]])}
         <p class="field__err" id="f-attending-err" hidden></p>
       </fieldset>
+      <p class="cond rsvp__no" data-when="no" hidden>${esc(u.rsvpNoNote)}</p>
 
       <div class="cond" data-when="yes" hidden>
         ${r.askDietary ? `<div data-guest-diet>${dietPicker(lang, 'g', f.yourDiet, 'people.0.')}</div>` : ''}
@@ -470,6 +522,7 @@ function faq(cfg, lang) {
   const u = ui[lang];
   const items = faqItems(cfg, lang);
   const curios = (cfg.curiosities || []).filter((c) => has(t(c.q, lang)) && (has(t(c.a, lang)) || c.chart));
+  const funFaq = (cfg.fun?.faq || []).filter((c) => has(t(c.q, lang)) && has(t(c.a, lang)));
   return `
 <section class="sec faq" id="preguntas" aria-labelledby="faq-title">
   <h2 class="h2 sec__title" id="faq-title">${esc(u.faqTitle)}</h2>
@@ -478,6 +531,9 @@ function faq(cfg, lang) {
     ${curios.length ? `
     <h3 class="h3 faq__sub">${esc(u.curiositiesTitle)}</h3>
     ${curios.map((c) => qa(t(c.q, lang), t(c.a, lang), c.chart === 'clima' ? climateFigure(lang) : '')).join('')}` : ''}
+    ${funFaq.length ? `
+    <h3 class="h3 faq__sub">${esc(u.funFaqTitle)}</h3>
+    ${funFaq.map((c) => qa(t(c.q, lang), t(c.a, lang))).join('')}` : ''}
   </div>
 </section>`;
 }
@@ -536,6 +592,34 @@ function stay(cfg, lang) {
 </section>`;
 }
 
+/* ---------------- packing list ---------------- */
+function packing(cfg, lang) {
+  const items = (cfg.fun?.packing || []).filter((p) => has(t(p.item, lang)));
+  if (!items.length) return '';
+  const u = ui[lang].packing;
+  return `
+<section class="sec packing" id="maleta" aria-labelledby="packing-title">
+  <h2 class="h2 sec__title" id="packing-title">${esc(u.title)}</h2>
+  <div class="sec__body">
+    <p class="lede">${esc(u.intro)}</p>
+    <ul class="pack" role="list" data-pack>
+      ${items.map((p, i) => `
+      <li class="pack__item">
+        <label class="pack__label">
+          <input type="checkbox" class="pack__box" data-pack-item="${i}">
+          <span class="pack__text"><span class="pack__name">${esc(t(p.item, lang))}</span>
+          ${has(t(p.note, lang)) ? `<span class="pack__note">${esc(t(p.note, lang))}</span>` : ''}</span>
+        </label>
+      </li>`).join('')}
+    </ul>
+    <div class="pack__bar">
+      <p class="pack__progress" data-pack-progress role="status" aria-live="polite">${esc(u.progress(0, items.length))}</p>
+      <button type="button" class="link link--btn" data-pack-reset hidden>${esc(u.reset)}</button>
+    </div>
+  </div>
+</section>`;
+}
+
 function closing(cfg, lang) {
   const u = ui[lang];
   const date = formatDate(cfg.wedding.date, lang, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -553,7 +637,8 @@ export function renderFooter(cfg, lang) {
   const u = ui[lang];
   return `
   <p><a class="link" href="privacidad.html${lang === 'en' ? '?lang=en' : ''}">${esc(u.privacyLink)}</a></p>
-  <p class="footer__small">${esc(u.footerArt)}</p>`;
+  <p class="footer__small">${esc(u.footerArt)}</p>
+  <p class="footer__small footer__joke">${esc(u.footerJoke)}</p>`;
 }
 
 /* ---------------- privacy notice ---------------- */

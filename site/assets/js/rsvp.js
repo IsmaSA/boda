@@ -4,6 +4,7 @@
 import { ui } from './ui.js';
 import { esc, personCard, maxParty } from './render.js';
 import { localDate } from './time.js';
+import { confetti } from './fun.js';
 
 const TIMEOUT_MS = 20000;
 const EDIT_KEY = 'rsvp-edit';
@@ -180,6 +181,7 @@ export function initRsvp(panel, cfg, lang, state) {
   };
   const hideGif = () => { if (gifBox) { gifBox.hidden = true; gifBox.innerHTML = ''; } };
   const yesBlock = form.querySelector('[data-when="yes"]');
+  const noBlock = form.querySelector('[data-when="no"]');
   const consent = form.querySelector('[data-consent]');
   const addBtn = form.querySelector('[data-add]');
   const countEl = form.querySelector('[data-count]');
@@ -251,7 +253,9 @@ export function initRsvp(panel, cfg, lang, state) {
     consent.hidden = yesBlock.hidden || !(d.people.some((p) => p.diet.length) || d.accessibility);
   };
   const sync = () => {
-    yesBlock.hidden = form.querySelector('[name="attending"]:checked')?.value !== 'yes';
+    const choice = form.querySelector('[name="attending"]:checked')?.value;
+    yesBlock.hidden = choice !== 'yes';
+    if (noBlock) noBlock.hidden = choice !== 'no';
     const partnerCard = form.querySelector('[data-person][data-role="partner"]');
     if (partnerCard) partnerCard.hidden = !partnerOn();
     form.querySelectorAll('.diet').forEach(syncOther);
@@ -426,6 +430,7 @@ export function initRsvp(panel, cfg, lang, state) {
       }
       if (panel.isConnected) showDone(!auto);
       else state.deliverDoneLater = true;
+      if (data.attending === 'yes' && cfg.fun?.confetti) confetti();
       return;
     }
     const code = res?.error || 'generic';

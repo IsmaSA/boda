@@ -381,6 +381,59 @@ export const config = {
     },
   ],
 
+  // ------------------------------------------------------------------------
+  // TOQUES DE HUMOR. Todo lo de este bloque es opcional: borrad una parte (o
+  // poned null) y desaparece de la web sin romper nada.
+  // ------------------------------------------------------------------------
+  fun: {
+    // Bajo la cuenta atrás: «…o, lo que es lo mismo, 305 siestas».
+    siestas: true,
+    // Escribir «tortilla» en cualquier parte de la web (sin estar en un campo
+    // del formulario) lanza confeti y un mensaje secreto.
+    easterEgg: true,
+    // Confeti cuando alguien confirma que viene.
+    confetti: true,
+
+    // Sección «La maleta perfecta»: lista que cada invitado puede ir marcando
+    // (se recuerda solo en su navegador).
+    packing: [
+      { item: { es: 'Abanico', en: 'A fan' },
+        note: { es: 'En septiembre, en Extremadura, no es un complemento: es supervivencia.', en: 'In September, in Extremadura, this isn’t an accessory. It’s survival gear.' } },
+      { item: { es: 'Una chaqueta ligera', en: 'A light jacket' },
+        note: { es: 'De noche refresca. No lo decimos nosotros, lo dice el gráfico.', en: 'It cools down at night. Don’t take our word for it: the chart says so.' } },
+      { item: { es: 'Zapatos cómodos (o un segundo par)', en: 'Comfortable shoes (or a spare pair)' },
+        note: { es: 'Los tacones aguantan la ceremonia. La pista de baile, no.', en: 'Heels survive the ceremony. The dance floor is another matter.' } },
+      { item: { es: 'Tiritas', en: 'Plasters' },
+        note: { es: 'Tu yo de madrugada te lo agradecerá.', en: 'The 3 a.m. version of you will thank you.' } },
+      { item: { es: 'Gafas de sol y protector solar', en: 'Sunglasses and sunscreen' },
+        note: { es: 'El sol de la Vegas Altas no negocia.', en: 'The Vegas Altas sun does not negotiate.' } },
+      { item: { es: 'Pañuelos', en: 'Tissues' },
+        note: { es: 'Alguien se va a emocionar. Probablemente uno de los novios (no diremos cuál).', en: 'Someone will cry. Probably one of the couple (we won’t say which).' } },
+      { item: { es: 'Hueco en el estómago', en: 'Room in your stomach' },
+        note: { es: 'Vas a la cuna de la tortilla de patatas. Actúa en consecuencia.', en: 'You’re heading to the birthplace of the Spanish omelette. Plan accordingly.' } },
+      { item: { es: 'Ganas de bailar', en: 'A willingness to dance' },
+        note: { es: 'Imprescindible. No se vende en farmacias.', en: 'Essential. Not available in pharmacies.' } },
+    ],
+
+    // «Preguntas que nadie ha hecho (pero respondemos igual)», dentro de Preguntas.
+    faq: [
+      { q: { es: '¿Habrá tortilla de patatas?', en: 'Will there be Spanish omelette?' },
+        a: { es: 'El menú aún no está cerrado, pero la boda es en el pueblo donde, según las crónicas, se inventó. Si no hubiera, nos echarían de Villanueva.', en: 'The menu isn’t final yet, but the wedding is in the town where, according to the chronicles, it was invented. If there were none, Villanueva would run us out of town.' } },
+      { q: { es: '¿Con cebolla o sin cebolla?', en: 'With or without onion?' },
+        a: { es: 'Es una boda, no un debate parlamentario. Ese día venimos en paz.', en: 'This is a wedding, not a parliamentary debate. We come in peace.' } },
+      { q: { es: '¿Por qué hay un gráfico con intervalos de confianza en una web de boda?', en: 'Why is there a chart with confidence intervals on a wedding website?' },
+        a: { es: 'Porque uno de los novios es científico y no ha podido evitarlo. Lo sentimos (no lo sentimos).', en: 'Because one of the couple is a scientist and couldn’t help himself. We’re sorry (we’re not sorry).' } },
+      { q: { es: '¿Puedo dar un discurso?', en: 'Can I give a speech?' },
+        a: { es: '¡Claro! Avísanos antes y procura que dure menos que la ceremonia.', en: 'Of course! Just let us know beforehand, and try to keep it shorter than the ceremony.' } },
+      { q: { es: '¿Hasta qué hora dura la fiesta?', en: 'How late does the party go?' },
+        a: { es: 'Hasta que alguien diga «la última y nos vamos» por tercera vez.', en: 'Until someone says “one last drink and we’re off” for the third time.' } },
+      { q: { es: '¿De verdad vais a conquistar el mundo con mis alergias?', en: 'Are you really going to conquer the world with my allergies?' },
+        a: { es: 'Es el plan B. El plan A es que el restaurante sepa lo que no puedes comer.', en: 'That’s plan B. Plan A is making sure the restaurant knows what you can’t eat.' } },
+      { q: { es: '¿Qué pasa si no confirmo?', en: 'What happens if I don’t RSVP?' },
+        a: { es: 'Que te llamaremos. Varias veces. Ahórrate el drama y confirma.', en: 'We’ll call you. Several times. Spare yourself the drama and reply.' } },
+    ],
+  },
+
   // Preguntas frecuentes extra. Las básicas (fecha, lugar, cómo confirmar,
   // acompañantes, alergias, fecha límite…) se generan solas a partir de los
   // datos de arriba y solo aparecen cuando el dato existe.

@@ -12,6 +12,7 @@ import re
 import sys
 import time
 import urllib.request
+import urllib.parse
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
@@ -219,7 +220,7 @@ with sync_playwright() as p:
     def t_maps():
         pg = new_page()
         pg.goto(SITE)
-        a = pg.locator("#boda a.btn")
+        a = pg.locator("#boda .venue a.btn")
         assert a.get_attribute("href").startswith("https://www.google.com/maps/")
         assert a.get_attribute("target") == "_blank" and "noopener" in a.get_attribute("rel")
     t_maps()
@@ -259,7 +260,7 @@ with sync_playwright() as p:
         expect(pg.locator("iframe.map__frame")).to_be_attached()
         expect(pg.locator("[data-map-load]")).to_have_count(0)
         # directions button opens the restaurant's own Google Maps listing
-        href = pg.locator("#boda a.btn").get_attribute("href")
+        href = pg.locator("#boda .venue a.btn").get_attribute("href")
         assert "query_place_id=ChIJ2aPI-adZFA0RfFYsNuMl5xw" in href, href
         # phone: map stacks under the address
         m = new_page(viewport={"width": 390, "height": 844})
@@ -353,6 +354,59 @@ with sync_playwright() as p:
         assert not pg.errors, pg.errors
     t_climate()
 
+    @check("Humour: siestas, calendar, packing list (remembered), silly FAQ, 'no' note, secret omelette, English")
+    def t_fun():
+        pg = new_page()
+        pg.goto(SITE)
+        expect(pg.locator("[data-siestas]")).to_contain_text("siestas.")
+        # add to calendar: Google link + downloadable .ics, all-day 18 September 2027
+        g = pg.locator("[data-cal=google]")
+        assert "dates=20270918%2F20270919" in g.get_attribute("href"), g.get_attribute("href")
+        ics = urllib.parse.unquote(pg.locator("[data-cal=ics]").get_attribute("href").split(",", 1)[1])
+        assert "DTSTART;VALUE=DATE:20270918" in ics and "DTEND;VALUE=DATE:20270919" in ics and "\r\n" in ics, ics
+        assert "Restaurante Casablanca\\, Avenida de Chile" in ics, ics
+        assert pg.locator("[data-cal=ics]").get_attribute("download") == "boda-isma-sara.ics"
+        # packing list: progress, remembered after reload, reset
+        items = pg.locator("[data-pack-item]")
+        n = items.count()
+        assert n == 8, n
+        items.nth(0).check()
+        items.nth(3).check()
+        expect(pg.locator("[data-pack-progress]")).to_have_text(f"2 de {n} listas")
+        pg.reload()
+        expect(pg.locator("[data-pack-item]").nth(3)).to_be_checked()
+        for i in range(n):
+            pg.locator("[data-pack-item]").nth(i).check()
+        expect(pg.locator("[data-pack-progress]")).to_have_text("¡Maleta lista! Ya solo faltas tú.")
+        pg.click("[data-pack-reset]")
+        expect(pg.locator("[data-pack-progress]")).to_have_text(f"0 de {n} listas")
+        expect(pg.locator("[data-pack-reset]")).to_be_hidden()
+        # silly FAQ
+        expect(pg.locator(".faq__sub", has_text="Preguntas que nadie ha hecho")).to_be_visible()
+        q = pg.locator("details.qa", has_text="¿Con cebolla o sin cebolla?")
+        q.locator("summary").click()
+        expect(q).to_contain_text("debate parlamentario")
+        # "no podré ir" note
+        pg.locator("[name=attending][value=no]").check()
+        expect(pg.locator(".rsvp__no")).to_be_visible()
+        pg.locator("[name=attending][value=yes]").check()
+        expect(pg.locator(".rsvp__no")).to_be_hidden()
+        # secret omelette: not while typing in a field, yes elsewhere
+        pg.locator("[data-name=firstName]").first.type("tortilla")
+        expect(pg.locator(".toast")).to_have_count(0)
+        pg.locator("#boda").click(position={"x": 5, "y": 5})
+        pg.keyboard.type("tortilla")
+        expect(pg.locator(".toast")).to_contain_text("tortilla secreta")
+        pg.locator(".toast__close").click()
+        expect(pg.locator(".toast")).to_have_count(0)
+        axe(pg, "fun")
+        pg.click("[data-lang=en]")
+        expect(pg.locator("[data-siestas]")).to_contain_text("put another way")
+        expect(pg.locator("#maleta h2")).to_have_text("The perfect suitcase")
+        expect(pg.locator(".footer__joke")).to_contain_text("confidence interval")
+        assert not pg.errors, pg.errors
+    t_fun()
+
     @check("Where to stay + Villanueva fun facts: content, links, nav, FAQ, English")
     def t_stay():
         pg = new_page()
@@ -370,15 +424,15 @@ with sync_playwright() as p:
         assert plats.count() == 2
         assert "checkin=2027-09-18" in plats.nth(0).get_attribute("href") and "checkout=2027-09-19" in plats.nth(1).get_attribute("href")
         # FAQ: the stay question points to the section; fun facts listed under their own heading
-        expect(pg.locator(".faq__sub")).to_have_text("Curiosidades de Villanueva")
-        tortilla = pg.locator("details.qa", has_text="tortilla")
+        expect(pg.locator(".faq__sub").first).to_have_text("Curiosidades de Villanueva")
+        tortilla = pg.locator("details.qa", has_text="tortilla").first
         tortilla.locator("summary").click()
         expect(tortilla).to_contain_text("27 de febrero de 1798")
         expect(pg.locator("details.qa", has_text="¿Dónde puedo alojarme?")).to_contain_text("Dónde dormir")
         axe(pg, "stay + faq")
         pg.click("[data-lang=en]")
         expect(pg.locator("#stay-title")).to_have_text("Where to stay")
-        expect(pg.locator(".faq__sub")).to_have_text("Fun facts about Villanueva")
+        expect(pg.locator(".faq__sub").first).to_have_text("Fun facts about Villanueva")
         expect(pg.locator(".nav a[href='#alojamiento']")).to_have_text("Where to stay")
         assert not pg.errors, pg.errors
     t_stay()
@@ -875,7 +929,7 @@ with sync_playwright() as p:
         pg = new_page()
         resp = pg.goto(SITE + "no/existe")
         assert resp.status == 404
-        expect(pg.locator("h1")).to_have_text("Esta página no existe")
+        expect(pg.locator("h1")).to_have_text("Esta página se ha perdido de camino a Villanueva")
         bg = pg.evaluate("getComputedStyle(document.body).backgroundColor")
         assert bg == "rgb(244, 238, 226)", f"stylesheet not loaded at depth: {bg}"
     t_404()

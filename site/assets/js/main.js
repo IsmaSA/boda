@@ -7,6 +7,10 @@ import { initRsvp, snapshotForm, restoreForm } from './rsvp.js';
 import { initGallery } from './gallery.js';
 import { initMap } from './map.js';
 import { initRoutes } from './routes.js';
+import { initEasterEgg, initPacking } from './fun.js';
+
+// Links (calendar, …) use the address the page is really served from.
+config.siteUrl = new URL('./', location.href).href;
 
 const PRERENDERED = document.documentElement.lang || 'es';
 const store = {
@@ -85,6 +89,7 @@ function wireCountdown() {
   clearInterval(timer);
   const el = $main.querySelector('[data-countdown]');
   if (!el) return;
+  const aside = $main.querySelector('[data-siestas]');
   const u = ui[lang].countdown;
   const nf = new Intl.NumberFormat(lang === 'en' ? 'en-GB' : 'es-ES');
   const unit = (n, [one, many], pad) =>
@@ -93,7 +98,13 @@ function wireCountdown() {
     const c = countdown(Date.now(), config.wedding);
     if (c.phase === 'before') {
       el.innerHTML = unit(c.days, u.days) + unit(c.hours, u.hours, true) + unit(c.minutes, u.minutes, true) + unit(c.seconds, u.seconds, true);
+      if (aside) {
+        const text = c.days > 1 ? ui[lang].siestas(nf.format(c.days)) : '';
+        if (aside.textContent !== text) aside.textContent = text;
+        aside.hidden = !text;
+      }
     } else {
+      if (aside) aside.hidden = true;
       el.innerHTML = `<p class="cd__msg">${c.phase === 'today' ? u.today : u.after}</p>`;
       clearInterval(timer);
     }
@@ -120,6 +131,8 @@ function wire() {
   initGallery($main, config, lang);
   initMap($main);
   initRoutes($main);
+  initPacking($main, lang);
+  initEasterEgg(config, lang);
 }
 
 if (lang !== PRERENDERED) render();

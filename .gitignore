@@ -3,6 +3,7 @@ node_modules/
 
 # Web generada (la crea el flujo de GitHub Actions en cada push)
 dist/
+.test-dist/
 
 # Exportaciones de respuestas (datos personales; nunca al repositorio)
 *.csv
